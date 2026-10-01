@@ -1,0 +1,65 @@
+// This file defines your database tables. After editing it, run:
+//   npm run prisma:migrate
+// Prisma will create the tables for you and generate a type-safe client.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int              @id @default(autoincrement())
+  email        String           @unique
+  passwordHash String
+  name         String
+  niche        String
+  bio          String?
+  rate         Int?
+  location     String?
+  skills       String[]
+  createdAt    DateTime         @default(now())
+
+  clients      Client[]
+  invoices     Invoice[]
+  requests     ContactRequest[]
+}
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  name      String
+  email     String?
+  note      String?
+  createdAt DateTime  @default(now())
+
+  invoices  Invoice[]
+}
+
+model Invoice {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  clientId  Int
+  client    Client   @relation(fields: [clientId], references: [id])
+  title     String
+  amount    Int
+  status    String   @default("unpaid") // "unpaid" | "paid" | "overdue"
+  dueDate   DateTime?
+  createdAt DateTime @default(now())
+}
+
+model ContactRequest {
+  id            Int      @id @default(autoincrement())
+  freelancerId  Int
+  freelancer    User     @relation(fields: [freelancerId], references: [id])
+  senderName    String
+  senderEmail   String
+  brief         String
+  status        String   @default("new") // "new" | "archived"
+  createdAt     DateTime @default(now())
+}
